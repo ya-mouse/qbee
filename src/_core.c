@@ -24,6 +24,7 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     PyObject *parentobj;
+    PyObject *cls;
     PyObject *iface;
     PyObject *iface_defs;
 } qb_interface_set_t;
@@ -51,30 +52,37 @@ qb_interface_get(qb_object_t *obj, char *name)
 static int
 _Py_object_init(qb_object_t *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *cls, *name;
-    PyObject *tuple = PyTuple_Pack(1, self);
-//    self->ob_dict = PyDict_New();
+    PyObject *name, *obj;
+    PyTypeObject *cls;
+    qb_interface_set_t *ifaceset;
+    PyObject *tuple;
+
+    cls = Py_TYPE(self);
+    tuple = PyTuple_Pack(2, self, cls);
     printf("self=%p t=%p\n", self, ((PyObject *)(&qb_interface_set_type))->ob_type);
     self->objset = PyObject_CallObject((PyObject *) &qb_object_set_type, NULL); //(PyObject *)self);
     self->ifaceset = PyObject_CallObject((PyObject *) &qb_interface_set_type, tuple); // (PyObject *)self);
     Py_DECREF(tuple);
-    cls = Py_TYPE(self);
+    Py_INCREF(self->objset);
+
     printf("OBJINIT: self=%p cls=%p\n", self, cls);
-    name = PyUnicode_InternFromString("ifc");
-    printf("--%d\n", PyObject_SetAttr((PyObject *)self, name, self->ifaceset));
-/*
-    if (PyObject_HasAttr(cls, name)) {
+    name = PyUnicode_InternFromString("iface");
+//    printf("--%d\n", PyObject_SetAttr((PyObject *)self, name, self->ifaceset));
+
+    ifaceset = (qb_interface_set_t *)PyDict_GetItem(cls->tp_dict, name);
+    if (ifaceset != NULL) {
         Py_ssize_t i = 0;
         PyObject *key, *value, *obj;
-        qb_interface_t *iface;
         printf("cls has\n");
-        iface = Py_TYPE(PyObject_GetAttr((PyObject *)cls, name))->tp_dict;
-        while (PyDict_Next(iface, &i, &key, &value)) {
-            obj = PyObject_CallObject(iface, NULL); // PyTuple_Pack(1, self->parentobj));
-            printf("%d\n", obj); PyObject_SetAttr((PyObject *)Py_TYPE(self), key, obj);
+        //iface = Py_TYPE(PyObject_GetAttr((PyObject *)cls, name))->tp_dict;
+        while (PyDict_Next(ifaceset->iface_defs, &i, &key, &value)) {
+            obj = PyObject_CallObject(value, PyTuple_Pack(1, self));
+            PyObject_Print(obj, stdout, 0);
+            printf("%p %d\n", obj, PyObject_SetAttr(self->ifaceset, key, obj));
         }
     }
-*/
+    PyObject_SetAttr(self, name, self->ifaceset);
+
 //    Py_INCREF(self->ob_dict);
 //    Py_INCREF(self->objset);
 //    Py_INCREF(self->ifaceset);
@@ -108,6 +116,15 @@ _Py_interface_traverse(qb_interface_t *self, visitproc visit, void *arg)
 }
 
 static int
+_Py_interface_set_traverse(qb_interface_set_t *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->iface_defs);
+    Py_VISIT(self->cls);
+    Py_VISIT(self->parentobj);
+    return 0;
+}
+
+static int
 _Py_interface_set_init(qb_interface_set_t *self, PyObject *args, PyObject *kwds)
 {
     Py_ssize_t i;
@@ -118,9 +135,12 @@ _Py_interface_set_init(qb_interface_set_t *self, PyObject *args, PyObject *kwds)
         return 0;
 
     self->parentobj = PyTuple_GetItem(args, 0);
-    fprintf(stderr, "interface_set_init: %p %p t=%p\n", self, self->iface_defs, self);
-    if (self->iface_defs == NULL)
+    fprintf(stderr, "interface_set_init: %p %p t=%p p=%p\n", self, self->iface_defs, self, self->parentobj);
+    if (self->iface_defs == NULL) {
+//        self->iface_defs = PyDict_New();
         return 0;
+    }
+    return 0;
 
     iface = self->iface_defs;
     self->iface_defs = PyDict_New();
@@ -129,22 +149,34 @@ _Py_interface_set_init(qb_interface_set_t *self, PyObject *args, PyObject *kwds)
     printf("ifc=%p\n", self->iface);
     while (PyDict_Next(self->iface, &i, &key, &value)) {
         obj = PyObject_CallObject(iface, NULL); // PyTuple_Pack(1, self->parentobj));
-        printf("%d\n", obj); PyObject_GenericSetAttr((PyObject *)Py_TYPE(self), key, obj);
+        printf("%p %d\n", obj, PyObject_GenericSetAttr((PyObject *)Py_TYPE(self), key, obj));
     }
     return 0;
 }
 
 static PyObject *
+_Py_interface_set_repr(qb_interface_set_t *self)
+{
+    return PyUnicode_FromFormat(
+        "<qb_interface_set_t object, self=%p>",
+        self);
+}
+
+
+static PyObject *
 _Py_interface_set_getattr(qb_interface_set_t *self, PyObject *name)
 {
-    fprintf(stderr, "GETATTR: %p\n", self);
-    return Py_None;
+    PyObject *p;
+    fprintf(stderr, "GETATTR: %p %s\n", self, PyUnicode_AsUTF8(name));
+    p = PyObject_GenericGetAttr((PyObject *)self, name); //Py_TYPE(self)->tp_dict;
+    printf("--%p\n", p);
+    return p;
 }
 
 static int
 _Py_interface_set_setattr(qb_interface_set_t *self, PyObject *name, PyObject *iface)
 {
-    PyObject *obj;
+//    PyObject *obj;
 
     printf("check=%d\n", Py_TYPE(self) == &qb_interface_set_type);
 
@@ -171,11 +203,14 @@ _Py_interface_set_setattr(qb_interface_set_t *self, PyObject *name, PyObject *if
     }
 #endif
     //obj = PyObject_CallObject(iface, NULL);// PyTuple_Pack(1, self->parentobj));
-    if (self->iface_defs == NULL)
+    if (self->iface_defs == NULL) {
         self->iface_defs = PyDict_New();
-    fprintf(stderr, "IFACESET: t=%p %p\n", Py_TYPE(self), self);
+    }
+    fprintf(stderr, "IFACESET: t=%p %p %s\n", self, self->iface_defs, PyUnicode_AsUTF8(name));
 
-    return PyObject_GenericSetAttr((PyObject *)self, name, iface);
+//    return PyObject_GenericSetAttr((PyObject *)self, name, iface);
+//    return PyDict_SetItem(((PyTypeObject *)self)->tp_dict, name, iface);
+    return PyDict_SetItem(self->iface_defs, name, iface);
 }
 
 static int
@@ -195,12 +230,14 @@ _Py_object_set_setattr(qb_object_set_t *self, PyObject *name, PyObject *item)
     return 0;
 }
 
+#if 0
 static PyObject *
 _Py_object_set_getattr(PyObject *self, PyObject *name)
 {
     fprintf(stderr, "GGGG: %p\n", self);
     return PyObject_GenericGetAttr(self, name);
 }
+#endif
 
 static int
 _Py_object_set_descrset(PyObject *meth, PyObject *obj, PyObject *cls)
@@ -212,19 +249,44 @@ _Py_object_set_descrset(PyObject *meth, PyObject *obj, PyObject *cls)
 static PyObject *
 _Py_interface_set_descrget(PyObject *meth, PyObject *obj, PyObject *cls)
 {
-    fprintf(stderr, "GET self=%p obj=%p cls=%p t=%s %s %p\n", meth, obj, cls, Py_TYPE(meth)->tp_name, ((PyTypeObject*)(cls))->tp_name, &qb_interface_set_type);
+    static int i = 0;
+    PyTypeObject *clstp = (PyTypeObject *)cls;
+    PyObject *name;
+
+    switch (i) {
+    case 0: name = PyUnicode_InternFromString("iface"); break;
+    case 1: name = PyUnicode_InternFromString("f111"); break;
+    case 2: name = PyUnicode_InternFromString("f222"); break;
+    }
+//    i++;
+
+    fprintf(stderr, "GET self=%p obj=%p cls=%p t=%p %s %p\n", meth, obj, cls, clstp->tp_dict, ((PyTypeObject*)(cls))->tp_name, &qb_interface_set_type);
+
+    obj = PyDict_GetItem(clstp->tp_dict, name);
+    printf("> %p\n", obj);
+    if (obj == NULL) {
+        PyObject *t;
+        Py_INCREF(cls);
+        t = PyTuple_Pack(2, obj == NULL ? Py_None : obj, cls);
+        obj = PyObject_CallObject((PyObject *) &qb_interface_set_type, t);
+        Py_DECREF(t);
+        printf("get=%d %p\n", PyDict_SetItem(clstp->tp_dict, name, obj), obj);
+    }
+        Py_INCREF(obj);
+    Py_DECREF(name);
+#if 0
     if (obj != NULL) {
         PyObject *iface = ((qb_interface_set_t *)obj)->iface;
         Py_INCREF(iface);
         printf("---%p\n", iface);
         return iface;
     } else {
-        PyObject *name = PyUnicode_InternFromString("ifc");
+        PyObject *name = PyUnicode_InternFromString("ifc2");
         Py_INCREF(name);
         if (!PyObject_HasAttr(cls, name)) {
             obj = PyObject_CallObject((PyObject *) &qb_interface_set_type, PyTuple_Pack(1, Py_None)); // (PyObject *)self);
             printf("NIFAC: %p\n", obj);
-            printf("S--%p %d\n", cls, PyObject_GenericSetAttr(cls, name, obj));
+            printf("S--%p %d\n", cls, PyDict_SetItem(clstp->tp_dict, name, obj));
             printf("has=%p\n", _PyType_Lookup(cls, name));
         } else {
             obj = PyObject_GenericGetAttr(cls, name);
@@ -233,23 +295,30 @@ _Py_interface_set_descrget(PyObject *meth, PyObject *obj, PyObject *cls)
         printf("GIFACE: %p\n", obj);
         return obj;
     }
-    return meth;
+#endif
+    return obj;
 }
 
 static PyObject *
 _Py_interface_set_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    PyObject *p;
-    p = PyType_GenericNew(type, args, kwds);
-    fprintf(stderr, "IFACE_NEW: t=%p a=%p o=%p\n", type, args, p);
-    return p;
+    qb_interface_set_t *p;
+    p = (qb_interface_set_t *)PyType_GenericNew(type, args, kwds);
+    Py_INCREF(p);
+    p->cls = PyTuple_GetItem(args, 1);
+    p->iface_defs = PyDict_New();
+    fprintf(stderr, "IFACE_NEW: t=%p a=%p o=%p\n", type, args, p->cls);
+    return (PyObject *)p;
 }
 
+#if 0
 static PyObject *
 _Py_interface_set_register(PyObject *self, PyObject *args)
 {
+    printf("SSSS: %p %p\n", self, args);
     return self;
 }
+#endif
 
 static PyMemberDef _Py_object_members[] = {
 //    {"iface", T_OBJECT, offsetof(qb_object_t, ifaceset), READONLY},
@@ -258,15 +327,22 @@ static PyMemberDef _Py_object_members[] = {
 };
 
 static PyMemberDef _Py_interface_members[] = {
-    {"obj", T_OBJECT, offsetof(qb_interface_t, parentobj), READONLY},
+    {"parent", T_OBJECT, offsetof(qb_interface_t, parentobj), READONLY},
     {NULL}
 };
 
+static PyMemberDef _Py_interface_set_members[] = {
+    {"__dict__", T_OBJECT, offsetof(qb_interface_set_t, iface_defs), READONLY},
+    {NULL}
+};
+
+#if 0
 static PyMethodDef _Py_interface_set_methods[] = {
-    {"register", (PyCFunction)_Py_interface_set_register, METH_VARARGS,
+    {"iface", (PyCFunction)_Py_interface_set_register, METH_VARARGS | METH_CLASS,
         PyDoc_STR("register interface")},
     {NULL}
 };
+#endif
 
 PyTypeObject qb_object_type = {
     .ob_base      = PyVarObject_HEAD_INIT(NULL, 0)
@@ -316,14 +392,16 @@ PyTypeObject qb_interface_set_type = {
     .tp_name      = "qb_interface_set_t",
     .tp_basicsize = sizeof(qb_interface_set_t),
     .tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HEAPTYPE,
+    .tp_repr      = (reprfunc)_Py_interface_set_repr,
     .tp_doc       = PyDoc_STR("qb_inetrace_set_t"),
+    .tp_members   = _Py_interface_set_members,
+    .tp_traverse  = (traverseproc)_Py_interface_set_traverse,
     .tp_setattro  = (setattrofunc)_Py_interface_set_setattr,
-    .tp_getattro  = (getattrofunc)_Py_interface_set_getattr,
+//    .tp_getattro  = (getattrofunc)_Py_interface_set_getattr,
     .tp_descr_get = _Py_interface_set_descrget,
     .tp_dictoffset = offsetof(qb_interface_set_t, iface_defs),
     .tp_init      = (initproc)_Py_interface_set_init,
     .tp_new       = _Py_interface_set_new,
-//    .tp_base      = &PyBaseObject_Type,
 };
 
 /* C API.
@@ -342,7 +420,7 @@ static struct PyModuleDef _core_module = {
 PyObject *
 PyInit__core(void)
 {
-    PyObject *m, *d, *x, *descr, *meth;
+    PyObject *m, *d, *x, *descr; //, *meth;
 
     if (PyType_Ready(&qb_interface_set_type) < 0)
         return NULL;

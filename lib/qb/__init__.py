@@ -8,6 +8,10 @@ class my_object(qb_object_t):
 #        pass
 
 #    iface = _ifaces
+    class my_iface(qb_interface_t):
+        #@iface_func('(O|O)')
+        def do_something(self, *objs):
+            return(self.parent)
 
     #@iface_func('(O|O)')
     def do_something(self, *objs):
@@ -18,24 +22,28 @@ class my_object(qb_object_t):
         print('DOREG {} {} {}'.format(cls, name, fn))
         exec("cls.{} = fn".format(name))
 
-class my_iface(qb_interface_t):
-    #@iface_func('(O|O)')
-    def do_something(self, *objs):
-        pass
+class my_ooo(qb_object_t):
+    pass
 
 def testfn(self, value):
     print('TESTFN {} {} {}'.format(self, value, self.obj))
 
 def main():
 #    from qb._memoryregion import MemoryRegion
-    my_object.iface.test = my_iface
-    qb_object_t.iface.fff = my_iface
-#    obj = my_object()
-#    obj2 = qb_object_t()
-    print(my_object.iface)
+    print(len(dir(my_object)))
+    qb_object_t.iface.fff = my_object.my_iface
+    my_ooo.iface.test = my_object.my_iface
+    my_ooo.iface.test2 = my_object.my_iface
+    my_object.iface.test3 = my_object.my_iface
+    obj = my_ooo()
+#    obj2 = my_ooo()
+    print(my_ooo.iface, qb_object_t.iface, my_object.iface)
+    print(dir(my_ooo.iface), dir(my_object.iface), dir(qb_object_t.iface))
 #    print(my_iface, obj.ifc.test)
-#    print(obj.iface.test)
+    print(my_ooo.iface, obj.iface.test, obj.iface.test.do_something())
+    print(my_ooo.iface.test, obj.iface.test)
 #    print(obj2.iface.test)
+    print('EXIT')
     sys.exit(0)
 
 

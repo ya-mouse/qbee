@@ -27,10 +27,10 @@ endif
 
 all:
 	@echo " [EXT]  build all"
-	python3.4m setup.py build $(PYQ)
+	python3.4dm setup.py build $(PYQ)
 
 install:
-	python3.4m setup.py install $(PYQ)
+	python3.4dm setup.py install $(PYQ)
 
 clean:
 	python3.4m setup.py clean $(PYQ)
