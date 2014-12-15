@@ -1,7 +1,7 @@
 import sys
 from types import MethodType
 from qb._core import qb_object_t, qb_interface_t
-from qb._map import qb_map_interface_t
+#from qb._map import qb_map_interface_t
 from qb import _memoryregion
 class my_object(qb_object_t):
 #    class _ifaces(qb_object_t):
@@ -36,13 +36,14 @@ def main():
     my_ooo.iface.test2 = my_object.my_iface
     my_object.iface.test3 = my_object.my_iface
     obj = my_ooo()
-#    obj2 = my_ooo()
+    obj2 = my_object()
     print(my_ooo.iface, qb_object_t.iface, my_object.iface)
     print(dir(my_ooo.iface), dir(my_object.iface), dir(qb_object_t.iface))
 #    print(my_iface, obj.ifc.test)
     print(my_ooo.iface, obj.iface.test, obj.iface.test.do_something())
-    print(my_ooo.iface.test, obj.iface.test)
-#    print(obj2.iface.test)
+    print(my_ooo.iface.test, obj.iface.test, 'OK')
+    # qb_preobject_t('template%')
+    obj2.o.test = 123
     print('EXIT')
     sys.exit(0)
 

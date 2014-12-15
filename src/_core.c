@@ -52,7 +52,7 @@ qb_interface_get(qb_object_t *obj, char *name)
 static int
 _Py_object_init(qb_object_t *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *name, *obj;
+    PyObject *name;
     PyTypeObject *cls;
     qb_interface_set_t *ifaceset;
     PyObject *tuple;
@@ -81,7 +81,7 @@ _Py_object_init(qb_object_t *self, PyObject *args, PyObject *kwds)
             printf("%p %d\n", obj, PyObject_SetAttr(self->ifaceset, key, obj));
         }
     }
-    PyObject_SetAttr(self, name, self->ifaceset);
+    PyObject_SetAttr((PyObject *)self, name, self->ifaceset);
 
 //    Py_INCREF(self->ob_dict);
 //    Py_INCREF(self->objset);
@@ -90,6 +90,7 @@ _Py_object_init(qb_object_t *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+#if 0
 static int
 _Py_object_traverse(qb_object_t *self, visitproc visit, void *arg)
 {
@@ -98,6 +99,7 @@ _Py_object_traverse(qb_object_t *self, visitproc visit, void *arg)
     Py_VISIT(self->ifaceset);
     return 0;
 }
+#endif
 
 static int
 _Py_interface_init(qb_interface_t *self, PyObject *args, PyObject *kwds)
@@ -107,6 +109,7 @@ _Py_interface_init(qb_interface_t *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+#if 0
 static int
 _Py_interface_traverse(qb_interface_t *self, visitproc visit, void *arg)
 {
@@ -123,6 +126,7 @@ _Py_interface_set_traverse(qb_interface_set_t *self, visitproc visit, void *arg)
     Py_VISIT(self->parentobj);
     return 0;
 }
+#endif
 
 static int
 _Py_interface_set_init(qb_interface_set_t *self, PyObject *args, PyObject *kwds)
@@ -162,7 +166,7 @@ _Py_interface_set_repr(qb_interface_set_t *self)
         self);
 }
 
-
+#if 0
 static PyObject *
 _Py_interface_set_getattr(qb_interface_set_t *self, PyObject *name)
 {
@@ -172,6 +176,7 @@ _Py_interface_set_getattr(qb_interface_set_t *self, PyObject *name)
     printf("--%p\n", p);
     return p;
 }
+#endif
 
 static int
 _Py_interface_set_setattr(qb_interface_set_t *self, PyObject *name, PyObject *iface)
@@ -225,8 +230,7 @@ _Py_object_set_init(qb_object_set_t *self, PyObject *args, PyObject *kwds)
 static int
 _Py_object_set_setattr(qb_object_set_t *self, PyObject *name, PyObject *item)
 {
-    fprintf(stderr, "OBJSET %p\n", self);
-    PyObject_GenericSetAttr((PyObject *)self, name, item);
+    fprintf(stderr, "OBJSET %p %d\n", self, PyObject_GenericSetAttr((PyObject *)self, name, item));
     return 0;
 }
 
@@ -331,6 +335,11 @@ static PyMemberDef _Py_interface_members[] = {
     {NULL}
 };
 
+static PyMemberDef _Py_object_set_members[] = {
+    {"__dict__", T_OBJECT, offsetof(qb_object_set_t, o), READONLY},
+    {NULL}
+};
+
 static PyMemberDef _Py_interface_set_members[] = {
     {"__dict__", T_OBJECT, offsetof(qb_interface_set_t, iface_defs), READONLY},
     {NULL}
@@ -350,8 +359,8 @@ PyTypeObject qb_object_type = {
     .tp_basicsize = sizeof(qb_object_t),
     .tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HEAPTYPE,
     .tp_doc       = PyDoc_STR("qb_object_t"),
-    .tp_traverse  = (traverseproc)_Py_object_traverse,
-    .tp_descr_set = _Py_object_set_descrset,
+//    .tp_traverse  = (traverseproc)_Py_object_traverse,
+//    .tp_descr_set = _Py_object_set_descrset,
 //    .tp_descr_get = _Py_object_set_descrget,
     .tp_members   = _Py_object_members,
     .tp_dictoffset = offsetof(qb_object_t, dict),
@@ -365,7 +374,7 @@ PyTypeObject qb_interface_type = {
     .tp_basicsize = sizeof(qb_interface_t),
     .tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_doc       = PyDoc_STR("qb_interface_t"),
-    .tp_traverse  = (traverseproc)_Py_interface_traverse,
+//    .tp_traverse  = (traverseproc)_Py_interface_traverse,
     .tp_members   = _Py_interface_members,
     .tp_descr_set = _Py_object_set_descrset,
 //    .tp_descr_get = _Py_object_set_descrget,
@@ -381,6 +390,7 @@ PyTypeObject qb_object_set_type = {
     .tp_flags     = Py_TPFLAGS_DEFAULT,
     .tp_doc       = PyDoc_STR("qb_object_set_t"),
     .tp_setattro  = (setattrofunc)_Py_object_set_setattr,
+    .tp_members   = _Py_object_set_members,
 //    .tp_getattro  = (getattrofunc)_Py_object_set_getattr,
     .tp_dictoffset = offsetof(qb_object_set_t, o),
     .tp_init      = (initproc)_Py_object_set_init,
@@ -395,7 +405,7 @@ PyTypeObject qb_interface_set_type = {
     .tp_repr      = (reprfunc)_Py_interface_set_repr,
     .tp_doc       = PyDoc_STR("qb_inetrace_set_t"),
     .tp_members   = _Py_interface_set_members,
-    .tp_traverse  = (traverseproc)_Py_interface_set_traverse,
+//    .tp_traverse  = (traverseproc)_Py_interface_set_traverse,
     .tp_setattro  = (setattrofunc)_Py_interface_set_setattr,
 //    .tp_getattro  = (getattrofunc)_Py_interface_set_getattr,
     .tp_descr_get = _Py_interface_set_descrget,

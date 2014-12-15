@@ -35,7 +35,7 @@ include_dirs = [ 'include' ]
 
 exts = [
     Extension('_core', sources=['src/_core.c']),
-    Extension('_map', sources=['src/_map.c']),
+#    Extension('_map', sources=['src/_map.c']),
     Extension('_memoryregion', sources=['src/_memoryregion.c']),
 ]
 
