@@ -1,6 +1,8 @@
 import os
 from setuptools import setup, find_packages
 from distutils.core import Extension
+from Cython.Build import cythonize
+from Cython.Distutils import build_ext
 from distutils.command.build_py import build_py_2to3 as build_py
 
 dependency_links = []
@@ -34,9 +36,9 @@ class PCTBuildPy(build_py):
 include_dirs = [ 'include' ]
 
 exts = [
-    Extension('_core', sources=['src/_core.c']),
-#    Extension('_map', sources=['src/_map.c']),
-    Extension('_memoryregion', sources=['src/_memoryregion.c']),
+    Extension('_core', sources=['src/_core.pyx']),
+    Extension('_map', sources=['src/_map.pyx']),
+#    Extension('_memoryregion', sources=['src/_memoryregion.c']),
 ]
 
 setup(
@@ -44,12 +46,12 @@ setup(
     version='0.1',
     description='QB python modules',
     author='Anton D. Kachalov',
-    cmdclass={'build_py': PCTBuildPy},
+    cmdclass={'build_py': PCTBuildPy, 'build_ext': build_ext},
     include_dirs = include_dirs,
     package_dir = {'qb': 'lib/qb'},
     packages=['qb'],
     ext_package='qb',
-    ext_modules=exts,
+    ext_modules=cythonize(exts),
     platforms='any',
     zip_safe=False,
     include_package_data=True,
