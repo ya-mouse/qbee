@@ -1,15 +1,15 @@
 import types
-from qb._core import qb_object_t, qb_interface_t
+from _core cimport qb_interface_t, qb_object_t
 
 class map_getset:
     def __get__(self, obj, klass):
-        return []
+        return [self, obj, klass]
 
-cdef class map_interface(qb_interface_t):
+cdef public class map_interface(qb_interface_t) [ object map_interface_st, type map_interface_type ]:
     @classmethod
     def register_interface(klass, target):
         target.map = map_getset()
 
-    def add_map(self, space, dev, target, start):
+    cpdef int add_map(map_interface self, qb_object_t space, qb_object_t dev, qb_object_t target, int start):
         print(self._obj, space, dev, target, start)
         return 0
