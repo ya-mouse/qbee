@@ -20,8 +20,6 @@ cdef void _install_metaclass(PyTypeObject *ctype, object metaclass):
     ctype.ob_base.ob_base.ob_type = <PyTypeObject*>metaclass
 
 cdef class ClassPropertyDescriptor:
-    cdef object fget
-
     def __init__(self, fget):
         self.fget = fget
 
@@ -49,9 +47,7 @@ cdef class ClassPropertyDescriptor:
 #
 #    return ClassPropertyDescriptor(func)
 
-cdef public class qb_interface_t [ object qb_interface_st, type qb_interface_t ]:
-    cdef public object _obj
-
+cdef public class qb_interface_t [ object qb_interface_st, type qb_interface_type ]:
     def __init__(self, obj):
         self._obj = obj
 
@@ -90,7 +86,7 @@ class qb_interface_classproperty_t:
         if builtin:
             super().__setattr__(attr, value)
 
-class qb_interface_set_t: # [ object qb_interface_set_t, type qb_interface_set_type ]:
+class qb_interface_set_t:
     def __init__(self, obj, ifacedefs):
         self._obj = obj
         self._ifacedefs = {}
@@ -137,10 +133,7 @@ class qb_object_set_t:
         value._parent = self._parent
         super().__setattr__(key, value)
 
-cdef public class qb_object_t(object) [ object ob_object_st, type qb_object_t ]:
-    cdef public object _iface
-    cdef public object _parent
-
+cdef public class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def __cinit__(self):
         self._parent = None
 
