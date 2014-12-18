@@ -23,7 +23,7 @@ class my_ooo(qb_object_t):
 
 class my_obj2(my_object):
     @interface('ttt')
-    class my_iface(my_object.my_iface):
+    class my_iface(map_interface):
         pass
 
 def main():
@@ -31,12 +31,13 @@ def main():
 #    qb_object_t.iface.fff = my_object.my_iface
     obj = my_ooo('test')
     obj.o.obj2 = my_obj2()
+    print(obj.o.obj2.map)
 #    print(obj.map, obj.iface.map_interface.add_map(1,2,3,4))
 #    print(my_ooo.iface, qb_object_t.iface, my_object.iface)
 #    print(dir(my_ooo.iface), dir(my_object.iface), dir(qb_object_t.iface))
 #    print(my_object.my_iface, obj.iface.test.do_something())
 
-    print(my_ooo.iface, obj.o.obj2.iface.ttt.do_something('bla'), obj.iface.test.do_something())
+    print(my_ooo.iface, obj.o.obj2.iface.ttt.add_map(None, None, None, 1), obj.iface.test.do_something())
 ##    print(my_ooo.iface.test, obj.iface.test, 'OK')
 #    # qb_preobject_t('template%')
 #    print(dir(obj2.iface))
