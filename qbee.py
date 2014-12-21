@@ -19,6 +19,7 @@
 #
 import sys
 import platform
+import threading
 
 qb_system=platform.system().lower()
 qb_machine=platform.machine()
@@ -26,5 +27,21 @@ qb_pyversion=platform.python_version().rsplit('.',1)[0]
 sys.path.append('build/lib.{}-{}-{}-pydebug'.format(qb_system, qb_machine, qb_pyversion))
 
 import qb
+from qb import rpc
 
+class qb_root(qb.qb_object_t):
+    pass
+
+# TODO: register special root object
+qb.root = qb_root('root')
+
+# Start RPC dom0 server
+global server
+server = rpc.qb_dom0_server()
+
+t = threading.Thread(target = server.start)
+t.setDaemon(True)
+t.start()
+
+# Enter to main
 qb.main()
