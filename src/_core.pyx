@@ -18,9 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-import cython
-
 from cpython cimport PyObject, Py_INCREF
 
 cdef extern from "Python.h":
@@ -43,28 +40,13 @@ cdef class ClassPropertyDescriptor:
     def __get__(self, obj, klass):
         if klass is None:
             klass = type(obj)
-        f = self.fget.__get__(obj, klass) #(obj, klass)()
-        return f()
-
-#    def __set__(self, obj, value):
-#        if not self.fset:
-#            raise AttributeError("can't set attribute")
-#        type_ = type(obj)
-#        return self.fset.__get__(obj, type_)(value)
-
-#    def setter(self, func):
-#        if not isinstance(func, (classmethod, staticmethod)):
-#            func = classmethod(func)
-#        self.fset = func
-#        return self
-
-#cdef object classproperty(func):
-#    if not isinstance(func, (classmethod, staticmethod)):
-#        func = classmethod(func)
-#
-#    return ClassPropertyDescriptor(func)
+        return self.fget.__get__(obj, klass)()
 
 cdef public class qb_interface_t [ object qb_interface_st, type qb_interface_type ]:
+    def __cinit__(self, obj):
+        if not hasattr(self, '__iface__'):
+            setattr(self, '__iface__', None)
+
     def __init__(self, obj):
         self._obj = obj
 
@@ -91,6 +73,8 @@ class qb_interface_classproperty_t:
         return self._ifacedefs
 
     def __getattr__(self, attr):
+        if attr == '__call__':
+             return super().__getattr__(self, attr)
         return self._ifacedefs[attr]
 
     def __setattr__(self, attr, value):
@@ -111,6 +95,10 @@ class qb_interface_set_t:
             v = v(obj)
             self.__setattr__(k, v)
             self._ifacedefs[k] = v
+
+    def __repr__(self):
+        return '<qb_interface_set, ifaces={}>'.format([k for k,v in self._ifacedefs.items()])
+
 
 def iface_method(klass):
         # For the first call instantiate ifacedefs
@@ -153,6 +141,7 @@ class qb_object_set_t:
 cdef public class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def __cinit__(self):
         self._parent = None
+        self._name = None
 
     def __init__(self, *args, **kwargs):
         try:
