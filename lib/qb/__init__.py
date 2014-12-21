@@ -1,4 +1,5 @@
 import sys
+import qb
 from qb._core import qb_object_t, qb_interface_t
 from qb.decorators import interface
 from qb._map import map_interface
@@ -29,22 +30,26 @@ class my_obj2(my_object):
 def main():
 #    from qb._memoryregion import MemoryRegion
 #    qb_object_t.iface.fff = my_object.my_iface
-    obj = my_ooo('test')
+    obj = qb.root.o.obj = my_ooo('test')
     obj.o.obj2 = my_obj2()
-    obj.o.obj3 = my_obj2()
+    obj.o.obj2.o.obj3 = my_obj2()
     print(obj.o.obj2.map)
+    print(obj.o.obj2.o.obj3.map)
 #    print(obj.map, obj.iface.map_interface.add_map(1,2,3,4))
 #    print(my_ooo.iface, qb_object_t.iface, my_object.iface)
 #    print(dir(my_ooo.iface), dir(my_object.iface), dir(qb_object_t.iface))
 #    print(my_object.my_iface, obj.iface.test.do_something())
 
     print(obj.o.obj2.iface.ttt.add_map(None, None, None, 1))
-    print(obj.o.obj3.iface.ttt.add_map(None, None, None, 2))
+    print(obj.o.obj2.o.obj3.iface.ttt.add_map(None, None, None, 2))
     print(obj.iface.test.do_something())
 ##    print(my_ooo.iface.test, obj.iface.test, 'OK')
 #    # qb_preobject_t('template%')
 #    print(dir(obj2.iface))
 #    obj2.o.test = 123
 #    print(issubclass(my_object.my_iface, qb_interface_t))
+    from time import sleep
+    while True:
+        sleep(1.0)
     print('EXIT')
     sys.exit(0)
