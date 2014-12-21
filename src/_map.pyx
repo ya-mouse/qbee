@@ -17,7 +17,6 @@
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
 import types
-from _core cimport qb_interface_t, qb_object_t
 
 class map_getset:
     def __get__(self, obj, klass):
