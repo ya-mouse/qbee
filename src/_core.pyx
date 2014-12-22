@@ -161,11 +161,11 @@ cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def o(self):
         return self._objs
 
-cdef class qb_root(qb_object_t):
+cdef class qb_root_class(qb_object_t):
     pass
 
 cdef extern from "Python.h": # hack to force type to be known
     cdef PyTypeObject qb_object_type # hack to install metaclass
 _install_metaclass(&qb_object_type, _qb_interface_setter)
 
-root = qb_root('root')
+root = qb_root_class('root')
