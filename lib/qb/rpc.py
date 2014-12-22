@@ -20,7 +20,8 @@ import sys
 import os
 import rpyc
 from rpyc.utils.server import ThreadedServer, ForkingServer
-from rpyc.utils.classic import DEFAULT_SERVER_PORT, DEFAULT_SERVER_SSL_PORT, connect, ssl_connect
+from rpyc.utils.classic import DEFAULT_SERVER_PORT, DEFAULT_SERVER_SSL_PORT
+from rpyc.utils.classic import connect, ssl_connect
 from rpyc.utils.registry import REGISTRY_PORT
 from rpyc.utils.registry import UDPRegistryClient
 from rpyc.utils.authenticators import SSLAuthenticator
