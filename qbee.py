@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
+import os
 import sys
 import platform
 import threading
@@ -44,9 +45,11 @@ t = threading.Thread(target = dom0.start)
 t.setDaemon(True)
 t.start()
 
+sys.ps1 = 'dom0> '
+
 # Load & run python script
 if len(sys.argv) > 1:
-    machinery.SourceFileLoader(basename(, sys.argv[1]).load_module()
+    machinery.SourceFileLoader(os.path.basename(sys.argv[1]), sys.argv[1]).load_module()
 
 # Enter to interactive main
-console.interact(context=globals())
+console.interact(banner='QBee interactive shell\n', context=globals())
