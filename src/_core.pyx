@@ -51,7 +51,7 @@ cdef public class qb_interface_t [ object qb_interface_st, type qb_interface_typ
         self._obj = obj
 
     def __repr__(self):
-        return '<qb_interface_t object {} for {}>'.format(self.__iface__, self._obj)
+        return '<{} object {} for {}>'.format(type(self).__name__, self.__iface__, self._obj)
 
     @classmethod
     def register_interface(klass, target):
