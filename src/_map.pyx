@@ -22,7 +22,7 @@ class map_getset:
     def __get__(self, obj, klass):
         return [self, obj, klass]
 
-cdef public class map_interface(qb_interface_t) [ object map_interface_st, type map_interface_type ]:
+cdef api class map_interface(qb_interface_t) [ object map_interface_st, type map_interface_type ]:
     def __init__(self, obj):
         super().__init__(obj)
         self._obj._map_obj = [self]

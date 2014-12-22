@@ -42,7 +42,7 @@ cdef class ClassPropertyDescriptor:
             klass = type(obj)
         return self.fget.__get__(obj, klass)()
 
-cdef public class qb_interface_t [ object qb_interface_st, type qb_interface_type ]:
+cdef api class qb_interface_t [ object qb_interface_st, type qb_interface_type ]:
     def __cinit__(self, obj):
         if not hasattr(self, '__iface__'):
             setattr(self, '__iface__', None)
@@ -138,7 +138,7 @@ class qb_object_set_t:
         value._parent = self._parent
         super().__setattr__(key, value)
 
-cdef public class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
+cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def __cinit__(self):
         self._parent = None
         self._name = None
