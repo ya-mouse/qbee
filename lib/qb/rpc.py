@@ -85,10 +85,10 @@ class qb_dom0_client:
             self._port = default_port
 
         if self._ssl_keyfile:
-            self._conn = ssl_connect(self._host, port = default_port, keyfile = self._ssl_keyfile,
+            self._conn = ssl_connect(self._host, port = self._port, keyfile = self._ssl_keyfile,
                                     certfile = self._ssl_certfile, ca_certs = self._ssl_ca_certs, ipv6 = self._ipv6)
         else:
-            self._conn = connect(self._host, port = default_port, ipv6 = self._ipv6, keepalive = True)
+            self._conn = connect(self._host, port = self._port, ipv6 = self._ipv6, keepalive = True)
 
     @property
     def root(self):
