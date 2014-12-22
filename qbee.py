@@ -29,17 +29,10 @@ qb_pyversion=platform.python_version().rsplit('.',1)[0]
 sys.path.append('build/lib.{}-{}-{}-pydebug'.format(qb_system, qb_machine, qb_pyversion))
 
 import qb
-from qb import rpc, console
-
-class qb_root(qb.qb_object_t):
-    pass
-
-# TODO: register special root object
-qb.root = qb_root('root')
 
 # Start RPC dom0 server
 global dom0
-dom0 = rpc.qb_dom0_server()
+dom0 = qb.rpc.qb_dom0_server()
 
 t = threading.Thread(target = dom0.start)
 t.setDaemon(True)
@@ -52,4 +45,4 @@ if len(sys.argv) > 1:
     machinery.SourceFileLoader(os.path.basename(sys.argv[1]), sys.argv[1]).load_module()
 
 # Enter to interactive main
-console.interact(banner='QBee interactive shell\n', context=globals())
+qb.console.interact(banner='QBee interactive shell\n', context=globals())
