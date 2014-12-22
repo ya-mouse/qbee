@@ -72,8 +72,12 @@ class Completer:
             return None
 
     def _callable_postfix(self, val, word):
-        if callable(val):
-            word = word + "("
+        try:
+            if callable(val):
+                word = word + "("
+        except TypeError:
+            # Just skip RPC types
+            pass
         return word
 
     def global_matches(self, text):
@@ -118,7 +122,6 @@ class Completer:
             return []
 
         # get the content of the object, except __builtins__
-#        print(type(thisobject))
         words = dir(thisobject)
         if "__builtins__" in words:
             words.remove("__builtins__")
