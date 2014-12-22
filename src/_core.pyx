@@ -140,6 +140,7 @@ class qb_object_set_t:
 
 cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def __cinit__(self):
+        self._objs = None
         self._parent = None
         self._name = None
 
@@ -149,7 +150,7 @@ cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
         except IndexError:
             pass
         # FIXME: type's field has values while instance don't
-        if type(self)._iface is not None:
+        if type(self)._iface is not None and isinstance(type(self)._iface, qb_interface_classproperty_t):
             self.iface = qb_interface_set_t(self, type(self)._iface.ifacedefs)
         self._objs = qb_object_set_t(self)
 
@@ -160,7 +161,11 @@ cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def o(self):
         return self._objs
 
+cdef class qb_root(qb_object_t):
+    pass
 
 cdef extern from "Python.h": # hack to force type to be known
     cdef PyTypeObject qb_object_type # hack to install metaclass
 _install_metaclass(&qb_object_type, _qb_interface_setter)
+
+root = qb_root('root')
