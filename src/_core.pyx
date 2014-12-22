@@ -19,6 +19,7 @@
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
 from cpython cimport PyObject, Py_INCREF
+from rpyc.core.netref import NetrefMetaclass
 
 cdef extern from "Python.h":
     ctypedef struct PyVarObject:
@@ -131,7 +132,7 @@ class qb_object_set_t:
         if builtin:
             super().__setattr__(key, value)
             return
-        if not isinstance(value, qb_object_t):
+        if not isinstance(value, qb_object_t) and not isinstance(type(value), NetrefMetaclass):
             raise TypeError('value `{}\' have to be subclass of `qb_object_t\''.format(value))
         self._objs[key] = value
         value._name = key
