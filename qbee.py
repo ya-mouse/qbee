@@ -20,6 +20,7 @@
 import sys
 import platform
 import threading
+from importlib import machinery
 
 qb_system=platform.system().lower()
 qb_machine=platform.machine()
@@ -42,6 +43,10 @@ dom0 = rpc.qb_dom0_server()
 t = threading.Thread(target = dom0.start)
 t.setDaemon(True)
 t.start()
+
+# Load & run python script
+if len(sys.argv) > 1:
+    machinery.SourceFileLoader(basename(, sys.argv[1]).load_module()
 
 # Enter to interactive main
 console.interact(context=globals())
