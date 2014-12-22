@@ -1,3 +1,5 @@
+# _map.pyx
+# cython: language_level=3
 #
 # Generic map_interface type
 #
