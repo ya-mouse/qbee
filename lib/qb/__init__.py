@@ -1,6 +1,8 @@
 import sys
 import qb
-from qb._core import qb_object_t, qb_interface_t
+import qb.rpc
+import qb.console
+from qb._core import qb_object_t, qb_interface_t, root
 from qb.decorators import interface
 from qb._map import map_interface
 #from qb import _memoryregion
