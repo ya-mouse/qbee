@@ -1,5 +1,6 @@
 build
 __pycache__
+src/*_api.h
 src/_core.c
 src/_core.h
 src/_map.c
