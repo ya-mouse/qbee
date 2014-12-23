@@ -192,9 +192,16 @@ def interact(banner=None, readfunc=None, context=None):
         console.raw_input = readfunc
     else:
         try:
+            import atexit, os
             import readline
             readline.set_completer(console.complete)
             readline.parse_and_bind('tab: complete')
+            histfile = os.path.join(os.path.expanduser("~"), ".qbee_history")
+            try:
+                readline.read_history_file(histfile)
+            except FileNotFoundError:
+                pass
+            atexit.register(readline.write_history_file, histfile)
         except ImportError:
             pass
 
