@@ -22,8 +22,12 @@ cdef class ClassPropertyDescriptor:
 cdef api class qb_interface_t [ object qb_interface_st, type qb_interface_type ]:
     cdef public object _obj
 
+cdef api class qb_pin_t [ object qb_pin_st, type qb_pin_type ]:
+    cdef public object _obj
+
 cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     cdef public object _parent
     cdef public object _name
     cdef public object _iface
     cdef public object _objs
+    cdef public object _pins

@@ -94,11 +94,35 @@ class qb_interface_set_t:
         self._ifacedefs = {}
         for k,v in ifacedefs.items():
             v = v(obj)
-            self.__setattr__(k, v)
+            #self.__setattr__(k, v)
+            setattr(self, k, v)
             self._ifacedefs[k] = v
 
     def __repr__(self):
         return '<qb_interface_set, ifaces={}>'.format([k for k,v in self._ifacedefs.items()])
+
+cdef api class qb_pin_t [ object qb_pin_st, type qb_pin_type ]:
+    def __init__(self, obj):
+        self._obj = obj
+
+class qb_pin_set_t(dict):
+    def __init__(self, obj, pins):
+        self._obj = None
+        for k,v in pins.items():
+            v = v(obj)
+            self.__setitem__(k, v)
+        self._obj = obj
+
+    def __setitem__(self, key, value):
+        if self._obj is None:
+            if (not isinstance(value, type) or not issubclass(value, qb_pin_t)) and not isinstance(value, qb_pin_t):
+                raise TypeError('value `{}\' have to be subclass of `qb_pin_t\''.format(value))
+        else:
+            raise TypeError('Unable to change pin after object instantiation')
+        super().__setitem__(key, value)
+
+    def __repr__(self):
+        return '<qb_pin_set, pins={}>'.format([k for k,v in self.items()])
 
 
 def iface_method(klass):
@@ -112,15 +136,18 @@ def iface_method(klass):
 
         return klass._iface
 
-cdef class _qb_interface_setter(type):
+cdef class _qb_object_metaclass(type):
     def __init__(cls, name, bases, nmspc):
         cls._iface = None
+        cls._pins  = qb_pin_set_t(None, {})
         cls.iface = ClassPropertyDescriptor(classmethod(iface_method))
         for k,v in nmspc.items():
-            if not isinstance(v, type) or not issubclass(v, qb_interface_t) or not hasattr(v, '__iface__'):
-                continue
-            setattr(cls.iface, v.__iface__, v)
-        super(_qb_interface_setter, cls).__init__(name, bases, nmspc)
+            if isinstance(v, type) and issubclass(v, qb_interface_t):
+                setattr(cls.iface, v.__iface__ if hasattr(v, '__iface__') else k, v)
+            if isinstance(v, type) and issubclass(v, qb_pin_t):
+                k = v.__pin__ if hasattr(v, '__pin__') else k
+                cls._pins[k] = v
+        super(_qb_object_metaclass, cls).__init__(name, bases, nmspc)
 
 class qb_object_set_t:
     def __init__(self, parent):
@@ -154,6 +181,8 @@ cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
         if type(self)._iface is not None and isinstance(type(self)._iface, qb_interface_classproperty_t):
             self.iface = qb_interface_set_t(self, type(self)._iface.ifacedefs)
         self._objs = qb_object_set_t(self)
+        if type(self)._pins is not None and isinstance(type(self)._pins, dict):
+            self._pins = qb_pin_set_t(self, type(self)._pins)
 
     def __repr__(self):
         return '<{} object, name={}>'.format(type(self).__name__, self._name)
@@ -162,11 +191,15 @@ cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
     def o(self):
         return self._objs
 
+    @property
+    def pin(self):
+        return self._pins
+
 cdef class qb_root_class(qb_object_t):
     pass
 
 cdef extern from "Python.h": # hack to force type to be known
     cdef PyTypeObject qb_object_type # hack to install metaclass
-_install_metaclass(&qb_object_type, _qb_interface_setter)
+_install_metaclass(&qb_object_type, _qb_object_metaclass)
 
 root = qb_root_class('root')
