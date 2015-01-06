@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
+import atexit, os
+import readline
 import rlcompleter
 import logging
 import code
@@ -151,9 +153,16 @@ def get_class_members(klass):
 class qb_console(code.InteractiveConsole):
     """Proxy interactive console to remote interpreter."""
 
-    def __init__(self, context):
+    def __init__(self, context=None, histfile=os.path.expanduser('~/.qbee_history')):
         code.InteractiveConsole.__init__(self, context)
         self._completer = Completer(None) #context)
+        readline.set_completer(self.complete)
+        readline.parse_and_bind('tab: complete')
+        try:
+            readline.read_history_file(histfile)
+        except FileNotFoundError:
+            pass
+        atexit.register(readline.write_history_file, histfile)
 
     def interact(self, banner=None):
 #        logging.info('Enter.')
@@ -187,24 +196,8 @@ def interact(banner=None, readfunc=None, context=None):
     """Start console and connect to remote console server."""
 
     console = qb_console(context)
-
-    if readfunc is not None:
-        console.raw_input = readfunc
-    else:
-        try:
-            import atexit, os
-            import readline
-            readline.set_completer(console.complete)
-            readline.parse_and_bind('tab: complete')
-            histfile = os.path.join(os.path.expanduser("~"), ".qbee_history")
-            try:
-                readline.read_history_file(histfile)
-            except FileNotFoundError:
-                pass
-            atexit.register(readline.write_history_file, histfile)
-        except ImportError:
-            pass
-
+#    if readfunc is not None:
+#        console.raw_input = readfunc
     console.interact(banner)
 
 fh = [
