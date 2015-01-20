@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
-#from qb._core cimport qb_object_t, qb_interface_t
+from qb._core cimport qb_object_t, qb_interface_t
 
 cdef api class map_interface(qb_interface_t) [ object map_interface_st, type map_interface_type ]:
     cpdef int add_map(map_interface self, qb_object_t space, qb_object_t dev, qb_object_t target, int start)
