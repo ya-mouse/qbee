@@ -51,7 +51,7 @@ setup(
     package_dir = {'qb': 'lib/qb'},
     packages=['qb'],
     ext_package='qb',
-    ext_modules=cythonize(exts),
+    ext_modules=cythonize(exts, include_path=['lib']),
     platforms='any',
     zip_safe=False,
     include_package_data=True,
