@@ -48,6 +48,7 @@ setup(
     author='Anton D. Kachalov',
     cmdclass={'build_py': PCTBuildPy, 'build_ext': build_ext},
     include_dirs = include_dirs,
+    scripts=['qbee.py'],
     package_dir = {'qb': 'lib/qb'},
     package_data = {'qb': ['*.pxd']},
     packages=['qb'],
