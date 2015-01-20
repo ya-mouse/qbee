@@ -49,6 +49,7 @@ setup(
     cmdclass={'build_py': PCTBuildPy, 'build_ext': build_ext},
     include_dirs = include_dirs,
     package_dir = {'qb': 'lib/qb'},
+    package_data = {'qb': ['*.pxd']},
     packages=['qb'],
     ext_package='qb',
     ext_modules=cythonize(exts, include_path=['lib']),
