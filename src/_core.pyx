@@ -102,14 +102,22 @@ class qb_interface_set_t:
         return '<qb_interface_set, ifaces={}>'.format([k for k,v in self._ifacedefs.items()])
 
 cdef api class qb_pin_t [ object qb_pin_st, type qb_pin_type ]:
-    def __init__(self, obj):
+    def __init__(self, obj, name):
         self._obj = obj
+        self._name = name
+
+    property name:
+        def __get__(self):
+            return self._name
+
+    def __str__(self):
+        return '<{} name={}>'.format(type(self).__name__, self._name)
 
 class qb_pin_set_t(dict):
     def __init__(self, obj, pins):
         self._obj = None
         for k,v in pins.items():
-            v = v(obj)
+            v = v(obj, bytes(k, 'ascii'))
             self.__setitem__(k, v)
         self._obj = obj
 
@@ -117,13 +125,17 @@ class qb_pin_set_t(dict):
         if self._obj is None:
             if (not isinstance(value, type) or not issubclass(value, qb_pin_t)) and not isinstance(value, qb_pin_t):
                 raise TypeError('value `{}\' have to be subclass of `qb_pin_t\''.format(value))
+            super().__setitem__(key, value)
         else:
-            raise TypeError('Unable to change pin after object instantiation')
-        super().__setitem__(key, value)
+            # Work as `connect' function instead of real value's change
+#            try:
+                self.__getitem__(key).__set__(self._obj, value)
+#            except KeyError:
+#                raise KeyError('No such PIN: {}'.format(key))
+#            raise TypeError('Unable to change pin after object instantiation')
 
     def __repr__(self):
         return '<qb_pin_set, pins={}>'.format([k for k,v in self.items()])
-
 
 def iface_method(klass):
         # For the first call instantiate ifacedefs

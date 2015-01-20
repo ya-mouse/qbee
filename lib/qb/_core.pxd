@@ -1,5 +1,5 @@
 #
-# Generic map_interface's definition file
+# Core types' definition file
 #
 # Copyright (c) 2014 Anton D. Kachalov <mouse@yandex.ru>
 #
@@ -16,7 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
-from _core cimport qb_object_t, qb_interface_t
+cdef class ClassPropertyDescriptor:
+    cdef object fget
 
-cdef api class map_interface(qb_interface_t) [ object map_interface_st, type map_interface_type ]:
-    cpdef int add_map(map_interface self, qb_object_t space, qb_object_t dev, qb_object_t target, int start)
+cdef api class qb_interface_t [ object qb_interface_st, type qb_interface_type ]:
+    cdef public object _obj
+
+cdef api class qb_pin_t [ object qb_pin_st, type qb_pin_type ]:
+    cdef public object _obj
+    cdef public object _name
+
+cdef api class qb_object_t(object) [ object ob_object_st, type qb_object_type ]:
+    cdef public object _parent
+    cdef public object _name
+    cdef public object _iface
+    cdef public object _objs
+    cdef public object _pins
